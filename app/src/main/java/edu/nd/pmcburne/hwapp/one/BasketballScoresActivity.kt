@@ -45,12 +45,25 @@ class BasketballScoresActivity : ComponentActivity() {
 
 @Composable
 fun BasketballScoresScreen(viewModel: BasketballScoresViewModel, modifier: Modifier = Modifier) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     val games by viewModel.games.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val isWomen by viewModel.isWomen.collectAsState()
 
     val displayFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
+
+    val datePickerDialog = android.app.DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val newDate = java.time.LocalDate.of(year, month + 1, dayOfMonth)
+            viewModel.updateDate(newDate)
+        },
+        selectedDate.year,
+        selectedDate.monthValue - 1,
+        selectedDate.dayOfMonth
+    )
 
     Column(modifier = modifier.fillMaxSize()) {
         Row(
@@ -60,7 +73,7 @@ fun BasketballScoresScreen(viewModel: BasketballScoresViewModel, modifier: Modif
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(onClick = { }) {
+            Button(onClick = { datePickerDialog.show() }) {
                 Text(text = selectedDate.format(displayFormatter))
             }
 
@@ -115,21 +128,27 @@ fun GameItem(game: GameEntity) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(text = game.awayTeamName, style = MaterialTheme.typography.titleMedium)
-                    Text(text = game.homeTeamName, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = "Home: ${game.homeTeamName}",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "Away: ${game.awayTeamName}",
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
 
                 if (game.gameState != "pre") {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = game.awayScore.toString(),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = if (game.winner == "away") FontWeight.Bold else FontWeight.Normal
-                        )
-                        Text(
                             text = game.homeScore.toString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = if (game.winner == "home") FontWeight.Bold else FontWeight.Normal
+                        )
+                        Text(
+                            text = game.awayScore.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = if (game.winner == "away") FontWeight.Bold else FontWeight.Normal
                         )
                     }
                 }
