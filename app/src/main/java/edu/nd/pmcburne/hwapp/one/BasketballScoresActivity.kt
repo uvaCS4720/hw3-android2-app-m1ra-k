@@ -93,21 +93,19 @@ fun BasketballScoresScreen(viewModel: BasketballScoresViewModel, modifier: Modif
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            if (isLoading && games.isEmpty()) {
+            if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (games.isEmpty()) {
+                Text("No games found for this date", modifier = Modifier.align(Alignment.Center))
             } else {
-                Column {
-                    if (isLoading) {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    items(games) { game ->
+                        GameItem(game = game)
                     }
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp)
-                    ) {
-                        items(games) { game ->
-                            GameItem(game = game)
-                        }
-                    }
+
                 }
             }
         }
@@ -157,9 +155,9 @@ fun GameItem(game: GameEntity) {
             Spacer(modifier = Modifier.height(12.dp))
 
             val statusText = when (game.gameState) {
-                "final" -> "Final"
-                "live" -> "${game.currentPeriod} - ${game.timeRemaining}"
-                else -> "Starts: ${game.startTime}"
+                "final" -> "FINAL"
+                "live" -> "CURRENTLY PLAYING: ${game.currentPeriod} - ${game.timeRemaining}"
+                else -> "UPCOMING: ${game.startTime}"
             }
 
             Text(
